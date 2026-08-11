@@ -1,0 +1,24 @@
+[
+  {
+    "externalId": "EXT-10231",
+    "username": "alice@demo.io",
+    "email": "alice@demo.io",
+    "wso2UserId": "a1001234-aaaa-bbbb-cccc-000000000001",
+    "firstName": "Alice",
+    "lastName": "Smith",
+    "source": "WSO2_IS_SELF_REGISTRATION",
+    "status": "ACTIVE",
+    "createdAt": "2024-03-11T09:14:22Z"
+  },
+  {
+    "externalId": "EXT-10232",
+    "username": "bob@demo.io",
+    "email": "bob@demo.io",
+    "wso2UserId": "b2002345-bbbb-cccc-dddd-000000000002",
+    "firstName": "Bob",
+    "lastName": "Jones",
+    "source": "WSO2_IS_SELF_REGISTRATION",
+    "status": "ACTIVE",
+    "createdAt": "2024-04-01T11:30:00Z"
+  }
+]

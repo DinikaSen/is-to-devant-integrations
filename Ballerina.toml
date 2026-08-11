@@ -1,0 +1,3 @@
+[workspace]
+title = "dinika2"
+packages = ["bt_userstore_service"]
