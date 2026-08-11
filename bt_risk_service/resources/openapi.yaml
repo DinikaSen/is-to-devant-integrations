@@ -1,0 +1,129 @@
+openapi: 3.0.3
+info:
+  title: BT Risk Service
+  description: API for evaluating login/access risk based on username and IP address.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:9090/risk/v1
+    description: Local development server
+
+paths:
+  /evaluate:
+    post:
+      summary: Evaluate risk for a user and IP address
+      description: >
+        Assesses the risk level of an access attempt based on the provided username
+        and IP address. Returns a risk score, level, and an allow/deny decision.
+        When denied, a list of reasons is included.
+      operationId: evaluateRisk
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluateRequest'
+            example:
+              username: john@demo.io
+              ipAddress: 203.0.113.7
+      responses:
+        '200':
+          description: Risk evaluation result — allow or deny
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/EvaluateAllowResponse'
+                  - $ref: '#/components/schemas/EvaluateDenyResponse'
+              examples:
+                allowed:
+                  summary: Access allowed (low risk)
+                  value:
+                    allow: true
+                    score: 12
+                    riskLevel: LOW
+                denied:
+                  summary: Access denied (high risk)
+                  value:
+                    allow: false
+                    score: 87
+                    riskLevel: HIGH
+                    reasons:
+                      - IP_REPUTATION_POOR
+                      - IMPOSSIBLE_TRAVEL
+        '500':
+          description: Internal server error
+
+components:
+  schemas:
+    EvaluateRequest:
+      type: object
+      required:
+        - username
+        - ipAddress
+      properties:
+        username:
+          type: string
+          description: The username of the user attempting access
+          example: john@demo.io
+        ipAddress:
+          type: string
+          description: The IP address from which the access attempt originates
+          example: 203.0.113.7
+
+    EvaluateAllowResponse:
+      type: object
+      required:
+        - allow
+        - score
+        - riskLevel
+      properties:
+        allow:
+          type: boolean
+          description: Always true when access is permitted
+          example: true
+        score:
+          type: integer
+          description: Numeric risk score (0–100); lower is safer
+          example: 12
+        riskLevel:
+          type: string
+          description: Risk classification
+          enum: [LOW, MEDIUM, HIGH]
+          example: LOW
+
+    EvaluateDenyResponse:
+      type: object
+      required:
+        - allow
+        - score
+        - riskLevel
+        - reasons
+      properties:
+        allow:
+          type: boolean
+          description: Always false when access is denied
+          example: false
+        score:
+          type: integer
+          description: Numeric risk score (0–100); higher means more risk
+          example: 87
+        riskLevel:
+          type: string
+          description: Risk classification
+          enum: [LOW, MEDIUM, HIGH]
+          example: HIGH
+        reasons:
+          type: array
+          description: List of risk signals that contributed to the denial
+          items:
+            type: string
+            enum:
+              - IP_REPUTATION_POOR
+              - IMPOSSIBLE_TRAVEL
+              - BRUTE_FORCE_DETECTED
+              - ACCOUNT_COMPROMISED
+              - GEO_ANOMALY
+          example:
+            - IP_REPUTATION_POOR
+            - IMPOSSIBLE_TRAVEL

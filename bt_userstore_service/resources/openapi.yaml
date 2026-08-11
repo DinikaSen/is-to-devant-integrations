@@ -1,0 +1,282 @@
+openapi: 3.0.3
+info:
+  title: BT Userstore Service
+  description: API for managing users in the BT userstore, supporting lookup, creation, and retrieval of user records.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080/userstore/v1
+    description: Local development server
+
+paths:
+  /users/lookup:
+    post:
+      summary: Lookup a user by username
+      description: >
+        Checks whether a user exists in the userstore by username.
+        Always returns HTTP 200 regardless of whether the user is found.
+      operationId: lookupUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LookupRequest'
+            example:
+              username: alice@demo.io
+      responses:
+        '200':
+          description: Lookup result — user found or not found
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/LookupFoundResponse'
+                  - $ref: '#/components/schemas/LookupNotFoundResponse'
+              examples:
+                userFound:
+                  summary: User exists
+                  value:
+                    exists: true
+                    externalId: EXT-10231
+                    username: alice@demo.io
+                    status: ACTIVE
+                    createdAt: "2024-03-11T09:14:22Z"
+                userNotFound:
+                  summary: User does not exist
+                  value:
+                    exists: false
+                    username: dave@demo.io
+        '500':
+          description: Internal server error
+
+  /users:
+    get:
+      summary: Get all users
+      description: Returns the full details of all users currently in the userstore.
+      operationId: getAllUsers
+      responses:
+        '200':
+          description: List of all user records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserRecord'
+              example:
+                - externalId: EXT-10231
+                  username: alice@demo.io
+                  email: alice@demo.io
+                  wso2UserId: a1001234-aaaa-bbbb-cccc-000000000001
+                  firstName: Alice
+                  lastName: Smith
+                  source: WSO2_IS_SELF_REGISTRATION
+                  status: ACTIVE
+                  createdAt: "2024-03-11T09:14:22Z"
+                - externalId: EXT-10232
+                  username: bob@demo.io
+                  email: bob@demo.io
+                  wso2UserId: b2002345-bbbb-cccc-dddd-000000000002
+                  firstName: Bob
+                  lastName: Jones
+                  source: WSO2_IS_SELF_REGISTRATION
+                  status: ACTIVE
+                  createdAt: "2024-04-01T11:30:00Z"
+
+    post:
+      summary: Create a new user
+      description: Creates a new user in the userstore and returns the created user summary with an assigned external ID.
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+            example:
+              username: erin@demo.io
+              email: erin@demo.io
+              wso2UserId: d4002616-f00c-49d5-b9b7-63b063819049
+              firstName: Erin
+              lastName: Okafor
+              source: WSO2_IS_SELF_REGISTRATION
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateUserResponse'
+              example:
+                externalId: EXT-90014
+                username: erin@demo.io
+                status: ACTIVE
+        '500':
+          description: Internal server error
+
+components:
+  schemas:
+    LookupRequest:
+      type: object
+      required:
+        - username
+      properties:
+        username:
+          type: string
+          description: The username (email) to look up
+          example: alice@demo.io
+
+    LookupFoundResponse:
+      type: object
+      required:
+        - exists
+        - externalId
+        - username
+        - status
+        - createdAt
+      properties:
+        exists:
+          type: boolean
+          description: Always true when the user is found
+          example: true
+        externalId:
+          type: string
+          description: The external identifier assigned to the user
+          example: EXT-10231
+        username:
+          type: string
+          description: The username of the found user
+          example: alice@demo.io
+        status:
+          type: string
+          description: The current status of the user
+          example: ACTIVE
+        createdAt:
+          type: string
+          format: date-time
+          description: The timestamp when the user was created (ISO 8601)
+          example: "2024-03-11T09:14:22Z"
+
+    LookupNotFoundResponse:
+      type: object
+      required:
+        - exists
+        - username
+      properties:
+        exists:
+          type: boolean
+          description: Always false when the user is not found
+          example: false
+        username:
+          type: string
+          description: The username that was looked up
+          example: dave@demo.io
+
+    CreateUserRequest:
+      type: object
+      required:
+        - username
+        - email
+        - wso2UserId
+        - firstName
+        - lastName
+        - source
+      properties:
+        username:
+          type: string
+          description: The username (typically an email address)
+          example: erin@demo.io
+        email:
+          type: string
+          format: email
+          description: The email address of the user
+          example: erin@demo.io
+        wso2UserId:
+          type: string
+          description: The unique user ID from WSO2 Identity Server
+          example: d4002616-f00c-49d5-b9b7-63b063819049
+        firstName:
+          type: string
+          description: The first name of the user
+          example: Erin
+        lastName:
+          type: string
+          description: The last name of the user
+          example: Okafor
+        source:
+          type: string
+          description: The registration source of the user
+          example: WSO2_IS_SELF_REGISTRATION
+
+    CreateUserResponse:
+      type: object
+      required:
+        - externalId
+        - username
+        - status
+      properties:
+        externalId:
+          type: string
+          description: The assigned external identifier for the new user
+          example: EXT-90014
+        username:
+          type: string
+          description: The username of the created user
+          example: erin@demo.io
+        status:
+          type: string
+          description: The initial status of the created user
+          example: ACTIVE
+
+    UserRecord:
+      type: object
+      required:
+        - externalId
+        - username
+        - email
+        - wso2UserId
+        - firstName
+        - lastName
+        - source
+        - status
+        - createdAt
+      properties:
+        externalId:
+          type: string
+          description: The external identifier assigned to the user
+          example: EXT-10231
+        username:
+          type: string
+          description: The username of the user
+          example: alice@demo.io
+        email:
+          type: string
+          format: email
+          description: The email address of the user
+          example: alice@demo.io
+        wso2UserId:
+          type: string
+          description: The unique user ID from WSO2 Identity Server
+          example: a1001234-aaaa-bbbb-cccc-000000000001
+        firstName:
+          type: string
+          description: The first name of the user
+          example: Alice
+        lastName:
+          type: string
+          description: The last name of the user
+          example: Smith
+        source:
+          type: string
+          description: The registration source of the user
+          example: WSO2_IS_SELF_REGISTRATION
+        status:
+          type: string
+          description: The current status of the user
+          example: ACTIVE
+        createdAt:
+          type: string
+          format: date-time
+          description: The timestamp when the user was created (ISO 8601)
+          example: "2024-03-11T09:14:22Z"
