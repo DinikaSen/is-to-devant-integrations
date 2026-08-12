@@ -1,7 +1,10 @@
+import ballerina/http;
+
 // Call the userstore service to look up a user by username
 function lookupUserInStore(string username) returns UserstoreLookupFoundResponse|UserstoreLookupNotFoundResponse|error {
     UserstoreLookupRequest lookupReq = {username: username};
-    json responseJson = check userstoreClient->post("/userstore/v1/users/lookup", lookupReq);
+    http:Response response = check userstoreClient->post("/users/lookup", lookupReq);
+    json responseJson = check response.getJsonPayload();
     boolean exists = check responseJson.exists;
     if exists {
         return check responseJson.cloneWithType(UserstoreLookupFoundResponse);
@@ -12,7 +15,7 @@ function lookupUserInStore(string username) returns UserstoreLookupFoundResponse
 // Call the risk service to evaluate risk for a username and IP address
 function evaluateRiskScore(string username, string ipAddress) returns RiskEvaluateResponse|error {
     RiskEvaluateRequest riskReq = {username: username, ipAddress: ipAddress};
-    return check riskClient->post("/risk/v1/evaluate", riskReq);
+    return check riskClient->post("/evaluate", riskReq);
 }
 
 // Build the final login decision response
