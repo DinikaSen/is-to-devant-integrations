@@ -1,3 +1,3 @@
 [workspace]
 title = "dinika2"
-packages = ["bt_userstore_service", "bt_risk_service", "bt_login_flow_integration"]
+packages = ["bt_userstore_service", "bt_risk_service", "bt_login_flow_integration", "bt_registration_flow_integration"]
