@@ -1,0 +1,9 @@
+[package]
+org = "wso2sa"
+name = "bt_profile_update_webhook"
+version = "0.1.0"
+distribution = "2201.13.5"
+title = "BT_profile_update_webhook"
+
+[build-options]
+sticky = true
