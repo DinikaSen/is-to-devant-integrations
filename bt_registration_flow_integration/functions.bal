@@ -1,7 +1,7 @@
 import ballerina/http;
 
-// Extract the username from the http://wso2.org/claims/username claim in the flow event
-function extractUsername(FlowExtensionRequest flowReq) returns string? {
+// Extract the email address from the http://wso2.org/claims/emailaddress claim in the flow event
+function extractEmail(FlowExtensionRequest flowReq) returns string? {
     Event flowEvent = flowReq.event;
     Flow? flow = flowEvent.flow;
     if flow is () {
@@ -17,7 +17,7 @@ function extractUsername(FlowExtensionRequest flowReq) returns string? {
     }
     foreach UserClaim claim in claims {
         string claimUri = claim.uri;
-        if claimUri == "http://wso2.org/claims/username" {
+        if claimUri == "http://wso2.org/claims/emailaddress" {
             string|string[] claimValue = claim.value;
             if claimValue is string {
                 return claimValue;
@@ -41,18 +41,18 @@ function lookupUserInStore(string username) returns UserstoreLookupFoundResponse
 
 // Build the flow extension response based on the userstore lookup result
 function handleFlowExtension(FlowExtensionRequest flowReq) returns SuccessResponse|FailedResponse|ErrorResponse {
-    // Extract username from claims
-    string? username = extractUsername(flowReq);
-    if username is () {
+    // Extract email address from claims (used as the username for userstore lookup)
+    string? email = extractEmail(flowReq);
+    if email is () {
         return {
             actionStatus: "ERROR",
-            errorMessage: "Missing username claim",
-            errorDescription: "The http://wso2.org/claims/username claim was not found in the request."
+            errorMessage: "Missing email claim",
+            errorDescription: "The http://wso2.org/claims/emailaddress claim was not found in the request."
         };
     }
 
-    // Call userstore lookup
-    UserstoreLookupFoundResponse|UserstoreLookupNotFoundResponse|error lookupResult = lookupUserInStore(username);
+    // Call userstore lookup using the email as the username
+    UserstoreLookupFoundResponse|UserstoreLookupNotFoundResponse|error lookupResult = lookupUserInStore(email);
     if lookupResult is error {
         return {
             actionStatus: "ERROR",
