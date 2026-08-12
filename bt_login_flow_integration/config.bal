@@ -1,11 +1,5 @@
-// Userstore service OAuth2 config
+// Userstore service URL
 configurable string userstoreServiceUrl = ?;
-configurable string userstoreTokenUrl = ?;
-configurable string userstoreClientId = ?;
-configurable string userstoreClientSecret = ?;
 
-// Risk service OAuth2 config
+// Risk service URL
 configurable string riskServiceUrl = ?;
-configurable string riskTokenUrl = ?;
-configurable string riskClientId = ?;
-configurable string riskClientSecret = ?;
