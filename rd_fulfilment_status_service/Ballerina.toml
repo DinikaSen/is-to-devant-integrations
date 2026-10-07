@@ -1,0 +1,9 @@
+[package]
+org = "wso2sa"
+name = "rd_fulfilment_status_service"
+version = "0.1.0"
+distribution = "2201.13.6"
+title = "RD_fulfilment_status_service"
+
+[build-options]
+sticky = true

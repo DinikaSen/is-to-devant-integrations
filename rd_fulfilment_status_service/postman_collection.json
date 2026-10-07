@@ -1,0 +1,305 @@
+{
+	"info": {
+		"name": "RD Fulfilment Status Service",
+		"description": "Sample requests for the RD Fulfilment Status Service demo backend. Covers the data endpoint, seed data, demo triggers (slow backend, admin modes) and admin endpoints. Authentication is enforced entirely by the Devant gateway, not by this service.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Order Lines",
+			"item": [
+				{
+					"name": "Get order line - SHIPPED (1001-1)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "demo-1001-1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/fulfilment/orderlines/1001-1",
+							"host": ["{{baseUrl}}"],
+							"path": ["fulfilment", "orderlines", "1001-1"]
+						},
+						"description": "Expected: 200 with status SHIPPED, carrier DHL, eta 2026-10-12."
+					},
+					"response": []
+				},
+				{
+					"name": "Get order line - PICKING, no carrier (1002-1)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "demo-1002-1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/fulfilment/orderlines/1002-1",
+							"host": ["{{baseUrl}}"],
+							"path": ["fulfilment", "orderlines", "1002-1"]
+						},
+						"description": "Expected: 200 with status PICKING, no carrier field, eta 2026-10-14."
+					},
+					"response": []
+				},
+				{
+					"name": "Get order line - slow backend trigger (5001-1)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "demo-5001-1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/fulfilment/orderlines/5001-1",
+							"host": ["{{baseUrl}}"],
+							"path": ["fulfilment", "orderlines", "5001-1"]
+						},
+						"description": "orderId starts with '5' so the response is delayed by slowOrderDelayMs (default 3000ms). Expected: 200 after the delay, with status IN_TRANSIT, carrier UPS, eta 2026-10-11."
+					},
+					"response": []
+				},
+				{
+					"name": "Get order line - DELIVERED (6001-1)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "demo-6001-1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/fulfilment/orderlines/6001-1",
+							"host": ["{{baseUrl}}"],
+							"path": ["fulfilment", "orderlines", "6001-1"]
+						},
+						"description": "Expected: 200 with status DELIVERED, carrier DHL, eta 2026-10-08."
+					},
+					"response": []
+				},
+				{
+					"name": "Get order line - not found (9999-1)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "demo-not-found",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/fulfilment/orderlines/9999-1",
+							"host": ["{{baseUrl}}"],
+							"path": ["fulfilment", "orderlines", "9999-1"]
+						},
+						"description": "Expected: 404 {\"error\": \"NOT_FOUND\", \"key\": \"9999-1\"}."
+					},
+					"response": []
+				},
+				{
+					"name": "Get order line - invalid key format (abc-1)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "demo-invalid-key",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/fulfilment/orderlines/abc-1",
+							"host": ["{{baseUrl}}"],
+							"path": ["fulfilment", "orderlines", "abc-1"]
+						},
+						"description": "Expected: 400 {\"error\": \"INVALID_KEY\", \"message\": \"...\"}."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Demo Triggers",
+			"item": [
+				{
+					"name": "Set admin mode - DOWN",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"mode\": \"DOWN\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/fulfilment/admin/mode",
+							"host": ["{{baseUrl}}"],
+							"path": ["fulfilment", "admin", "mode"]
+						},
+						"description": "Expected: 200 {\"mode\": \"DOWN\", \"delayMs\": ...}. While in this mode, every orderlines request returns 503."
+					},
+					"response": []
+				},
+				{
+					"name": "Get order line while DOWN (expect 503)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "demo-down-mode",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/fulfilment/orderlines/1001-1",
+							"host": ["{{baseUrl}}"],
+							"path": ["fulfilment", "orderlines", "1001-1"]
+						},
+						"description": "Run 'Set admin mode - DOWN' first. Expected: 503 {\"error\": \"SERVICE_UNAVAILABLE\"}."
+					},
+					"response": []
+				},
+				{
+					"name": "Set admin mode - SLOW with custom delay",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"mode\": \"SLOW\",\n  \"delayMs\": 5000\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/fulfilment/admin/mode",
+							"host": ["{{baseUrl}}"],
+							"path": ["fulfilment", "admin", "mode"]
+						},
+						"description": "Expected: 200 {\"mode\": \"SLOW\", \"delayMs\": 5000}. While in this mode, every orderlines request is delayed by delayMs."
+					},
+					"response": []
+				},
+				{
+					"name": "Get order line while SLOW (expect delay)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "demo-slow-mode",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/fulfilment/orderlines/1001-1",
+							"host": ["{{baseUrl}}"],
+							"path": ["fulfilment", "orderlines", "1001-1"]
+						},
+						"description": "Run 'Set admin mode - SLOW with custom delay' first. Expected: 200 after the configured delay (e.g. 5000ms)."
+					},
+					"response": []
+				},
+				{
+					"name": "Restore admin mode - NORMAL",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"mode\": \"NORMAL\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/fulfilment/admin/mode",
+							"host": ["{{baseUrl}}"],
+							"path": ["fulfilment", "admin", "mode"]
+						},
+						"description": "Expected: 200 {\"mode\": \"NORMAL\", \"delayMs\": ...}. Restores normal request handling."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "Get admin mode",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/fulfilment/admin/mode",
+							"host": ["{{baseUrl}}"],
+							"path": ["fulfilment", "admin", "mode"]
+						},
+						"description": "Expected: 200 {\"mode\", \"delayMs\"} reflecting the currently active admin mode."
+					},
+					"response": []
+				},
+				{
+					"name": "Get admin stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/fulfilment/admin/stats",
+							"host": ["{{baseUrl}}"],
+							"path": ["fulfilment", "admin", "stats"]
+						},
+						"description": "Expected: 200 {\"totalCalls\", \"byOutcome\": {...}}."
+					},
+					"response": []
+				},
+				{
+					"name": "Reset admin counters and mode",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/fulfilment/admin/reset",
+							"host": ["{{baseUrl}}"],
+							"path": ["fulfilment", "admin", "reset"]
+						},
+						"description": "Expected: 200 {\"message\": \"Counters and mode reset successfully\"}. Clears stats and sets mode back to NORMAL."
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,341 @@
+{
+	"info": {
+		"name": "RD Order Profile Service",
+		"description": "Postman collection to test the rd_order_profile_service endpoints, including seed data lookups, validation errors, simulated outages, admin mode controls, stats, and optional basic auth.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "basicAuthUsername",
+			"value": "admin",
+			"type": "string"
+		},
+		{
+			"key": "basicAuthPassword",
+			"value": "change-me",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Order Lines",
+			"item": [
+				{
+					"name": "Get order line - found (ACME 1001-1)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "demo-123",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/profile/orderlines/1001-1",
+							"host": ["{{baseUrl}}"],
+							"path": ["profile", "orderlines", "1001-1"]
+						},
+						"description": "Returns 200 with the ACME order line details. Echoes back X-Correlation-ID."
+					},
+					"response": []
+				},
+				{
+					"name": "Get order line - found (ACME 1001-2)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "demo-124",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/profile/orderlines/1001-2",
+							"host": ["{{baseUrl}}"],
+							"path": ["profile", "orderlines", "1001-2"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get order line - found (GLOBEX 5001-1)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "demo-125",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/profile/orderlines/5001-1",
+							"host": ["{{baseUrl}}"],
+							"path": ["profile", "orderlines", "5001-1"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get order line - not found",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "demo-126",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/profile/orderlines/9999-1",
+							"host": ["{{baseUrl}}"],
+							"path": ["profile", "orderlines", "9999-1"]
+						},
+						"description": "Valid key format but no matching seed data. Returns 404 {\"error\": \"NOT_FOUND\", \"key\": \"9999-1\"}."
+					},
+					"response": []
+				},
+				{
+					"name": "Get order line - invalid key format",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "demo-127",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/profile/orderlines/abc-1",
+							"host": ["{{baseUrl}}"],
+							"path": ["profile", "orderlines", "abc-1"]
+						},
+						"description": "Non-digit key. Returns 400 {\"error\": \"INVALID_KEY\", \"message\": \"...\"}."
+					},
+					"response": []
+				},
+				{
+					"name": "Get order line - simulated backend outage (orderId starts with 6)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "demo-128",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/profile/orderlines/6001-1",
+							"host": ["{{baseUrl}}"],
+							"path": ["profile", "orderlines", "6001-1"]
+						},
+						"description": "orderId starts with '6', always returns 503 {\"error\": \"SERVICE_UNAVAILABLE\"} regardless of admin mode or seed data."
+					},
+					"response": []
+				},
+				{
+					"name": "Get order line - with Basic Auth",
+					"request": {
+						"method": "GET",
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "{{basicAuthUsername}}",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "{{basicAuthPassword}}",
+									"type": "string"
+								}
+							]
+						},
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "demo-129",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/profile/orderlines/1001-1",
+							"host": ["{{baseUrl}}"],
+							"path": ["profile", "orderlines", "1001-1"]
+						},
+						"description": "Use this when basicAuthEnabled=true. Set basicAuthUsername/basicAuthPassword collection variables to match the service's configured credentials."
+					},
+					"response": []
+				},
+				{
+					"name": "Get order line - Basic Auth missing (401)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "demo-130",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/profile/orderlines/1001-1",
+							"host": ["{{baseUrl}}"],
+							"path": ["profile", "orderlines", "1001-1"]
+						},
+						"description": "When basicAuthEnabled=true and no credentials are supplied, returns 401 with WWW-Authenticate header."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "Get admin mode",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/profile/admin/mode",
+							"host": ["{{baseUrl}}"],
+							"path": ["profile", "admin", "mode"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Set admin mode - NORMAL",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"mode\": \"NORMAL\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/profile/admin/mode",
+							"host": ["{{baseUrl}}"],
+							"path": ["profile", "admin", "mode"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Set admin mode - DOWN",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"mode\": \"DOWN\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/profile/admin/mode",
+							"host": ["{{baseUrl}}"],
+							"path": ["profile", "admin", "mode"]
+						},
+						"description": "After setting this, every call to GET /profile/orderlines/{key} returns 503 {\"error\": \"SERVICE_UNAVAILABLE\"}."
+					},
+					"response": []
+				},
+				{
+					"name": "Set admin mode - SLOW (custom delay)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"mode\": \"SLOW\",\n  \"delayMs\": 5000\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/profile/admin/mode",
+							"host": ["{{baseUrl}}"],
+							"path": ["profile", "admin", "mode"]
+						},
+						"description": "After setting this, every call to GET /profile/orderlines/{key} is delayed by 5000 ms before responding."
+					},
+					"response": []
+				},
+				{
+					"name": "Set admin mode - SLOW (default delay)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"mode\": \"SLOW\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/profile/admin/mode",
+							"host": ["{{baseUrl}}"],
+							"path": ["profile", "admin", "mode"]
+						},
+						"description": "delayMs omitted — keeps the previously configured delay (defaultSlowDelayMs=3000 unless changed earlier)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get admin stats",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/profile/admin/stats",
+							"host": ["{{baseUrl}}"],
+							"path": ["profile", "admin", "stats"]
+						},
+						"description": "Returns {\"totalCalls\": n, \"byOutcome\": {\"SUCCESS\": n, \"NOT_FOUND\": n, \"INVALID_KEY\": n, \"SERVICE_UNAVAILABLE\": n, \"UNAUTHORIZED\": n}}."
+					},
+					"response": []
+				},
+				{
+					"name": "Reset admin stats",
+					"request": {
+						"method": "POST",
+						"url": {
+							"raw": "{{baseUrl}}/profile/admin/reset",
+							"host": ["{{baseUrl}}"],
+							"path": ["profile", "admin", "reset"]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

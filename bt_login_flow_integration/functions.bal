@@ -43,6 +43,7 @@ function buildLoginDecision(string username, string ipAddress) returns LoginDeci
         allow: riskResult.allow,
         score: riskResult.score
     };
+    LoginDecisionResponse var1 = transform(lookupResult, riskResult);
 
     // Step 4: Risk blocked
     boolean isAllowed = riskResult.allow;
